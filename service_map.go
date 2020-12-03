@@ -114,4 +114,13 @@ var Matches = []func(*core.HostService, []byte, []string) bool{
 		}
 		return false
 	},
+	//elasticsearch
+	func(hostService *core.HostService, bytes []byte, i []string) bool {
+		if hostService.Type == "http" &&
+			(strings.Contains(hostService.Data,"lucene") && strings.Contains(hostService.Data,"cluster_uuid") ) {
+			hostService.Type = "elasticsearch"
+			return true
+		}
+		return false
+	},
 }

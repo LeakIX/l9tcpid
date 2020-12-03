@@ -83,8 +83,8 @@ func FuzzConnection(connection net.Conn, hostService *core.HostService) (err err
 		}
 	}
 
-	// Try an SSL payload
-	if len(buffer) < 1 || hostService.Scheme != "ssl" {
+	// If we wrote and got no reply , try an "SSL payload"
+	if len(buffer) < 1 && hostService.Scheme != "ssl" {
 		err = connection.SetWriteDeadline(time.Now().Add(3*time.Second))
 		if err != nil {
 			return err
@@ -108,6 +108,7 @@ func FuzzConnection(connection net.Conn, hostService *core.HostService) (err err
 		}
 	}
 	if len(buffer) < 1 {
+		// Couldn't make up anything, return empty
 		return errors.New("empty")
 	}
 	printables := strings.FieldsFunc(string(buffer), func(r rune) bool {
@@ -139,6 +140,7 @@ func GetBanner(hostService *core.HostService) (err error) {
 	//   - upgrade connection
 	//   - Fuzz connection
 	//   - Fill certificate info
+	// - if http, request again, parse headers ( needed for SNI hosts anyway )
 	hostService.Type = "tcp"
 	// Open connection
 	connection, err := GetNetworkConnection(hostService)
@@ -237,7 +239,7 @@ func GetBanner(hostService *core.HostService) (err error) {
 			}
 			hostService.Certificate.Fingerprint = fmt.Sprintf("%02x", sha256.Sum256( tlsConnection.ConnectionState().PeerCertificates[0].Raw))
 			hostService.Certificate.CypherSuite = tls.CipherSuiteName(tlsConnection.ConnectionState().CipherSuite)
-			//hostService.Certificate.Version = plugin.GetTLSVersionName(tlsConnection.ConnectionState().Version)
+			hostService.Certificate.Version = GetTLSVersionName(tlsConnection.ConnectionState().Version)
 			hostService.Certificate.KeyAlgo = tlsConnection.ConnectionState().PeerCertificates[0].PublicKeyAlgorithm.String()
 			if publicKey, isECDSA :=  tlsConnection.ConnectionState().PeerCertificates[0].PublicKey.(*ecdsa.PublicKey); isECDSA {
 				hostService.Certificate.KeySize = publicKey.Params().BitSize
@@ -249,5 +251,15 @@ func GetBanner(hostService *core.HostService) (err error) {
 			hostService.Certificate.IssuerName = tlsConnection.ConnectionState().PeerCertificates[0].Issuer.CommonName
 		}
 	}
+	if hostService.Type == "http" {
+		//Grab HTTP banner
+		err = GetHttpBanner(hostService)
+		for _, matchFunc := range Matches {
+			if matchFunc(hostService, []byte{}, []string{}) {
+				return nil
+			}
+		}
+	}
+	hostService.DeferSave()
 	return nil
 }
