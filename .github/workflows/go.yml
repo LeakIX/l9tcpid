@@ -8,7 +8,7 @@ on:
   release:
     types: [ 'created' ]
 env:
-  PROJECT_NAME: l9serviceid
+  PROJECT_NAME: l9tcpid
 jobs:
   release:
     name: Release
