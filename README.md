@@ -66,7 +66,7 @@ The installation is easy. You can download the pre-built binaries for your platf
 
 ### l9format
 
-l9tcpid speaks [l9format](https://github/LeakIX/l9format). l9filter](https://github/LeakIX/l9filter)can be used to manage 
+l9tcpid speaks [l9format](https://github/LeakIX/l9format). [l9filter](https://github/LeakIX/l9filter) can be used to manage 
 input/output from this module.
 
 ### Running with ip4scout
