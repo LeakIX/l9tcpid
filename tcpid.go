@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"github.com/LeakIX/l9format"
 	"github.com/gboddin/goccm"
+	"io/ioutil"
 	"log"
 	"os"
 )
@@ -12,9 +13,13 @@ import (
 type TcpIdCommand struct {
 	MaxThreads int  `default:"10"`
 	ThreadManager *goccm.ConcurrencyManager `kong:"-"`
+	Debug bool
 }
 func (cmd *TcpIdCommand) Run() error {
 	cmd.ThreadManager = goccm.New(cmd.MaxThreads)
+	if !cmd.Debug {
+		log.SetOutput(ioutil.Discard)
+	}
 	stdinScanner := bufio.NewScanner(os.Stdin)
 	stdoutEncoder := json.NewEncoder(os.Stdout)
 	for stdinScanner.Scan() {
