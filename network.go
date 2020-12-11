@@ -21,6 +21,8 @@ import (
 	"unicode"
 )
 
+
+
 func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 	taskContext, _ := context.WithDeadline(context.Background(), time.Now().Add(20*time.Second))
 	conn, err = net.DialTimeout("tcp", net.JoinHostPort(event.Ip, event.Port), 3*time.Second)
@@ -28,6 +30,7 @@ func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 		// Will considerably lower TIME_WAIT connections and required fds,
 		// since we don't plan to reconnect to the same host:port combo and need TIME_WAIT's window anyway
 		// Will lead to out of sequence events if used on the same target host/port and source port starts to collide.
+		// TLDR : DO NOT USE ON AN HOST THAT'S NOT DEDICATED TO SCANNING
 		_ = tcpConn.SetLinger(0)
 
 	}
@@ -97,6 +100,19 @@ func GetBanner(event *l9format.L9Event) (err error) {
 }
 
 func SendLine(line string,conn net.Conn) (err error) {
+	log.Println("Sending " + line)
+	err = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
+	if err != nil {
+		return err
+	}
+	_, err = conn.Write([]byte(line + "\r\n"))
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func SendLineAndWait(line string,conn net.Conn) (err error) {
 	log.Println("Sending "+ line)
 	err = conn.SetWriteDeadline(time.Now().Add(1*time.Second))
 	if err != nil {
@@ -121,16 +137,16 @@ func SendLine(line string,conn net.Conn) (err error) {
 func UpgradeConnection(protocol string, connection net.Conn) (err error) {
 	switch protocol {
 	case "smtp":
-		err = SendLine("EHLO leakix.net", connection)
+		err = SendLineAndWait("EHLO leakix.net", connection)
 		if err != nil {
 			return err
 		}
-		err = SendLine("STARTTLS", connection)
+		err = SendLineAndWait("STARTTLS", connection)
 		if err != nil {
 			return err
 		}
 	case "ftp":
-		err = SendLine("AUTH TLS", connection)
+		err = SendLineAndWait("AUTH TLS", connection)
 		if err != nil {
 			return err
 		}
@@ -140,14 +156,7 @@ func UpgradeConnection(protocol string, connection net.Conn) (err error) {
 
 // takes a connection and populates hostService with findings
 func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
-	// - wait 1 second and read data
-	// - write fuzzing bytes
-	//   - if ok read back for 3 sec
-	// - if no input bytes yet, start sending fake SSL bytes,
-	//   - if ok read back for 3 sec
-	// - if still empty giveup
-	// - detect protocol from bytes
-	err = connection.SetReadDeadline(time.Now().Add(11*time.Second))
+	err = connection.SetReadDeadline(time.Now().Add(2*time.Second))
 	if err != nil {
 		return  err
 	}
@@ -201,7 +210,7 @@ func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
 	for _, result := range printables {
 		event.Summary += strings.TrimSpace(result) + "\n"
 	}
-	for _, matchFunc := range Matches {
+	for _, matchFunc := range TCPIdentifiers {
 		if matchFunc(event, buffer, printables) {
 			break
 		}

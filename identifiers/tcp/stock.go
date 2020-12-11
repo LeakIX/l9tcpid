@@ -1,4 +1,4 @@
-package identifiers
+package tcp
 
 import (
 	"github.com/LeakIX/l9format"
@@ -98,15 +98,6 @@ func IdentifyTelnet(event *l9format.L9Event, bannerBytes []byte, bannerPrintable
 	}
 	if len(bannerBytes) > 8 && bannerBytes[0] == 0x0d && bannerBytes[1] == 0x0a {
 		event.Protocol = "telnet"
-		return true
-	}
-	return false
-}
-
-func IdentifyElasticSearch(event *l9format.L9Event, bytes []byte, i []string) bool {
-	if event.HasTransport("http") &&
-		(strings.Contains(event.Summary,"lucene") && strings.Contains(event.Summary,"cluster_uuid") ) {
-		event.Protocol = "elasticsearch"
 		return true
 	}
 	return false

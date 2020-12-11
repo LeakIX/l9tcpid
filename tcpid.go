@@ -13,6 +13,7 @@ import (
 type TcpIdCommand struct {
 	MaxThreads int  `default:"10"`
 	ThreadManager *goccm.ConcurrencyManager `kong:"-"`
+	DeepHttp bool
 	Debug bool
 }
 func (cmd *TcpIdCommand) Run() error {
@@ -26,6 +27,7 @@ func (cmd *TcpIdCommand) Run() error {
 		event := &l9format.L9Event{}
 		err := json.Unmarshal(stdinScanner.Bytes(), event)
 		event.AddSource("l9tcpid")
+		event.EventType = "service"
 		event.Protocol = "tcp"
 		if err != nil {
 			return err
@@ -33,6 +35,9 @@ func (cmd *TcpIdCommand) Run() error {
 		cmd.ThreadManager.Wait()
 		go func(event *l9format.L9Event) {
 			err = GetBanner(event)
+			if event.HasTransport("http") && cmd.DeepHttp {
+				err = GetHttpBanner(event)
+			}
 			if len(event.Summary) > 0 {
 				err = stdoutEncoder.Encode(event)
 				if err != nil {
