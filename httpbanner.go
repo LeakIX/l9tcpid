@@ -84,18 +84,22 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 	scanner := bufio.NewScanner(connection)
 	var response string
 	var httpStatusLine string
+	var body string
 	headers := make(map[string]string)
+	// Handle status line
 	if scanner.Scan() {
 		httpStatusLine = scanner.Text()
 		httpStatusLineParts := strings.Fields(httpStatusLine)
 		if len(httpStatusLineParts) > 2 {
-			statusCode, err := strconv.Atoi(httpStatusLineParts[1])
-			if err == nil && statusCode > 0 && statusCode < 999 {
+
+			if statusCode, err := strconv.Atoi(httpStatusLineParts[1]);
+				err == nil && statusCode > 0 && statusCode < 999 {
 				event.Http.Status = statusCode
 			}
 		}
 		response += httpStatusLine + "\r\n"
 	}
+	// Handle headers
 	for scanner.Scan() {
 		response += scanner.Text() + "\r\n"
 		if scanner.Text() == "" {
@@ -108,7 +112,9 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		}
 	}
 	event.Http.Headers = headers
+	event.Summary = response
 
+	// Handles body
 	//String appending costs a lot, using a byte buffer saves 25% CPU :|
 	bodyBuffer := bytes.NewBufferString("")
 	for scanner.Scan() {
@@ -117,8 +123,9 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 			break
 		}
 	}
-	event.Summary = response
-	document, err := goquery.NewDocumentFromReader(bodyBuffer)
+	body = bodyBuffer.String()
+
+	document, err := goquery.NewDocumentFromReader(strings.NewReader(body))
 	if err == nil {
 		title := document.Find("title")
 		if title.Length() > 0 && len(title.Text()) > 0 {
@@ -126,13 +133,14 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 			event.Summary = "\r\nPage title: " + title.Text()
 		}
 	}
-	if len(event.Http.Title) < 1 {
-		event.Summary += bodyBuffer.String()
-	}
+
 	for _, matchFunc := range HttpIdentifiers {
-		if matchFunc(event, bodyBuffer.String(), document) {
+		if matchFunc(event, body, document) {
 			break
 		}
+	}
+	if len(event.Http.Title) < 1 && len(body) < 16*1024 {
+		event.Summary += body
 	}
 	return nil
 }
