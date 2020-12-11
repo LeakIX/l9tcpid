@@ -27,6 +27,7 @@ the socket protocol and capabilities :
 - Grab JARM fingerprint ( including upgraded connection from STARTTLS/AUTH TLS )
 - Gets a banner
 - Tries to identify protocol from that banner
+- Provides detailed HTTP application information
 - TODO: defaults to default port/software mapping
 
 ## Usage
@@ -39,6 +40,7 @@ Displays help for the service command (only implementation atm)
 
 |Flag           |Description  |
 |-----------------------|-------------------------------------------------------|
+|--deep-http            | Runs additional http checks to identify the software and populates the http event
 |--max-threads          |Maximum number of threads used for identification
 |--debug          |Prints developer information for now
 
