@@ -18,14 +18,25 @@ type TcpIdCommand struct {
 }
 func (cmd *TcpIdCommand) Run() error {
 	cmd.ThreadManager = goccm.New(cmd.MaxThreads)
+	defer cmd.ThreadManager.WaitAllDone()
 	if !cmd.Debug {
 		log.SetOutput(ioutil.Discard)
 	}
-	stdinScanner := bufio.NewScanner(os.Stdin)
+	stdinReader := bufio.NewReaderSize(os.Stdin, 256*1024)
 	stdoutEncoder := json.NewEncoder(os.Stdout)
-	for stdinScanner.Scan() {
+	for {
+		bytes, isPrefix, err := stdinReader.ReadLine()
+		if err != nil {
+			if err.Error() == "EOF" {
+				break
+			}
+			log.Fatal(err)
+		}
+		if isPrefix == true {
+			log.Fatal("Event is too big")
+		}
 		event := &l9format.L9Event{}
-		err := json.Unmarshal(stdinScanner.Bytes(), event)
+		err = json.Unmarshal(bytes, event)
 		event.AddSource("l9tcpid")
 		event.EventType = "service"
 		event.Protocol = "tcp"
@@ -41,7 +52,7 @@ func (cmd *TcpIdCommand) Run() error {
 			if len(event.Summary) > 0 {
 				err = stdoutEncoder.Encode(event)
 				if err != nil {
-					panic(err)
+					log.Fatal(err)
 				}
 			}
 			if err != nil {
@@ -50,7 +61,6 @@ func (cmd *TcpIdCommand) Run() error {
 			cmd.ThreadManager.Done()
 		}(event)
 	}
-	cmd.ThreadManager.WaitAllDone()
 	return nil
 }
 

@@ -13,3 +13,4 @@ func IdentifyElasticSearch(event *l9format.L9Event, body string, document *goque
 	}
 	return false
 }
+

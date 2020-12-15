@@ -22,6 +22,18 @@ func IdentifyHttp(event *l9format.L9Event, bannerBytes []byte, bannerPrintables 
 	}
 	return false
 }
+
+func IdentifyMongoDb(event *l9format.L9Event, _ []byte, bannerPrintables []string) bool {
+	if event.HasTransport("http") &&
+		strings.Contains(event.Summary, "MongoDB over HTTP") &&
+		strings.Contains(event.Summary, "native driver port") {
+		event.Protocol = "mongo"
+		event.RemoveTransport("http")
+		return true
+	}
+	return false
+}
+
 func IdentifyMysql(event *l9format.L9Event, bannerBytes []byte, bannerPrintables []string) bool {
 	if strings.Contains(event.Summary, "mysql_native_password") ||
 		(len(bannerBytes) > 16 && bannerBytes[1] == 0x00 && bannerBytes[2] == 0x00 &&

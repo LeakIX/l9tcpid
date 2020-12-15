@@ -20,6 +20,7 @@ var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyRedis,
 	tcp.IdentifyRTSP,
 	tcp.IdentifyTelnet,
+	tcp.IdentifyMongoDb,
 }
 
 var HttpIdentifiers = []HttpIdentifier{

@@ -3,7 +3,7 @@ module github.com/LeakIX/l9tcpid
 go 1.11
 
 require (
-	github.com/LeakIX/l9format v0.0.0-20201211151519-3fa809c99f79
+	github.com/LeakIX/l9format v0.6.0
 	github.com/Machiel/slugify v1.0.1 // indirect
 	github.com/PuerkitoBio/goquery v1.6.0
 	github.com/RumbleDiscovery/jarm-go v0.0.5-0.20201125030722-2ca10cdc1b63
