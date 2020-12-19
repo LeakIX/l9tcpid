@@ -105,7 +105,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 			break
 		}
 		headerParts := strings.Split(scanner.Text(), ":")
-		headers[strings.Trim(headerParts[0], " ")] = strings.Trim(strings.TrimPrefix(scanner.Text(), headerParts[0]+":"), " ")
+		headers[strings.Trim(strings.ToLower(headerParts[0]), " ")] = strings.Trim(strings.TrimPrefix(scanner.Text(), headerParts[0]+":"), " ")
 		if len(headers) > 128 {
 			break
 		}

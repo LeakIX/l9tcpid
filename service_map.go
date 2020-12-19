@@ -2,6 +2,7 @@ package l9tcpid
 
 import (
 	"github.com/LeakIX/l9format"
+	"github.com/LeakIX/l9tcpid/identifiers/http"
 	"github.com/LeakIX/l9tcpid/identifiers/tcp"
 	"github.com/PuerkitoBio/goquery"
 )
@@ -11,7 +12,6 @@ type HttpIdentifier func(event *l9format.L9Event, body string, document *goquery
 
 var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyHttp,
-	tcp.IdentifyElasticsearch,
 	tcp.IdentifyCouchDb,
 	tcp.IdentifyKibana,
 	tcp.IdentifyMongoDb,
@@ -24,7 +24,10 @@ var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyTelnet,
 	tcp.IdentifyCassandra,
 }
-var HttpIdentifiers []HttpIdentifier
+var HttpIdentifiers = []HttpIdentifier{
+	http.IdentifyElasticSearch,
+	http.IdentifyKibana,
+}
 var serviceMap = map[string]string{
 	"9092": "kafka",
 	"2181": "zookeeper",
