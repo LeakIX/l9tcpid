@@ -59,13 +59,13 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 	if err != nil {
 		return err
 	}
-	err = connection.SetDeadline(time.Now().Add(5*time.Second))
+	err = connection.SetDeadline(time.Now().Add(5 * time.Second))
 	if err != nil {
 		return err
 	}
 	if event.HasTransport("tls") {
 		connection = tls.Client(connection, &tls.Config{
-			ServerName: hostname,
+			ServerName:         hostname,
 			InsecureSkipVerify: true,
 		})
 		err = connection.(*tls.Conn).Handshake()
@@ -80,7 +80,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		return err
 	}
 
-	err = connection.SetReadDeadline(time.Now().Add(3*time.Second))
+	err = connection.SetReadDeadline(time.Now().Add(3 * time.Second))
 	scanner := bufio.NewScanner(connection)
 	var response string
 	var httpStatusLine string
@@ -92,8 +92,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		httpStatusLineParts := strings.Fields(httpStatusLine)
 		if len(httpStatusLineParts) > 2 {
 
-			if statusCode, err := strconv.Atoi(httpStatusLineParts[1]);
-				err == nil && statusCode > 0 && statusCode < 999 {
+			if statusCode, err := strconv.Atoi(httpStatusLineParts[1]); err == nil && statusCode > 0 && statusCode < 999 {
 				event.Http.Status = statusCode
 			}
 		}
@@ -106,7 +105,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 			break
 		}
 		headerParts := strings.Split(scanner.Text(), ":")
-		headers[strings.Trim(headerParts[0], " ")] = strings.Trim(strings.TrimPrefix(scanner.Text(), headerParts[0] + ":")," ")
+		headers[strings.Trim(headerParts[0], " ")] = strings.Trim(strings.TrimPrefix(scanner.Text(), headerParts[0]+":"), " ")
 		if len(headers) > 128 {
 			break
 		}

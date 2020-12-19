@@ -11,7 +11,6 @@ import (
 	"fmt"
 	"github.com/LeakIX/l9format"
 	"github.com/RumbleDiscovery/jarm-go"
-	"gitlab.nobody.run/tbi/core"
 	"gitlab.nobody.run/tbi/socksme"
 	"log"
 	"net"
@@ -20,8 +19,6 @@ import (
 	"time"
 	"unicode"
 )
-
-
 
 func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 	taskContext, _ := context.WithDeadline(context.Background(), time.Now().Add(20*time.Second))
@@ -38,10 +35,8 @@ func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 	// If you want to use a socks proxy ... Making network.go its own library soon.
 	//TODO : implement socks proxy support
 	return socksme.NewDialer("tcp", fmt.Sprintf("127.0.0.1:2250")).
-		DialContext(taskContext,  "tcp", net.JoinHostPort(event.Ip, event.Port))
-
+		DialContext(taskContext, "tcp", net.JoinHostPort(event.Ip, event.Port))
 }
-
 
 func GetBanner(event *l9format.L9Event) (err error) {
 	// Open connection
@@ -50,7 +45,7 @@ func GetBanner(event *l9format.L9Event) (err error) {
 		return err
 	}
 	event.Transports = append(event.Transports, "tcp")
-	err = connection.SetDeadline(time.Now().Add(10*time.Second))
+	err = connection.SetDeadline(time.Now().Add(10 * time.Second))
 	if err != nil {
 		return err
 	}
@@ -59,7 +54,7 @@ func GetBanner(event *l9format.L9Event) (err error) {
 		if err != nil {
 			return nil
 		}
-		err = connection.SetDeadline(time.Now().Add(10*time.Second))
+		err = connection.SetDeadline(time.Now().Add(10 * time.Second))
 		if err != nil {
 			return nil
 		}
@@ -82,7 +77,7 @@ func GetBanner(event *l9format.L9Event) (err error) {
 			return err
 		}
 	} else {
-		event.Transports = append(event.Transports,"tls")
+		event.Transports = append(event.Transports, "tls")
 		event.SSL.Enabled = true
 		FillSSLDetails(connection.(*tls.Conn).ConnectionState(), event)
 	}
@@ -99,7 +94,7 @@ func GetBanner(event *l9format.L9Event) (err error) {
 	return nil
 }
 
-func SendLine(line string,conn net.Conn) (err error) {
+func SendLine(line string, conn net.Conn) (err error) {
 	log.Println("Sending " + line)
 	err = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
 	if err != nil {
@@ -112,9 +107,9 @@ func SendLine(line string,conn net.Conn) (err error) {
 	return nil
 }
 
-func SendLineAndWait(line string,conn net.Conn) (err error) {
-	log.Println("Sending "+ line)
-	err = conn.SetWriteDeadline(time.Now().Add(1*time.Second))
+func SendLineAndWait(line string, conn net.Conn) (err error) {
+	log.Println("Sending " + line)
+	err = conn.SetWriteDeadline(time.Now().Add(1 * time.Second))
 	if err != nil {
 		return err
 	}
@@ -122,11 +117,11 @@ func SendLineAndWait(line string,conn net.Conn) (err error) {
 	if err != nil {
 		return err
 	}
-	err = conn.SetReadDeadline(time.Now().Add(2*time.Second))
+	err = conn.SetReadDeadline(time.Now().Add(2 * time.Second))
 	for {
 		recvBuf := make([]byte, 4096)
 		_, err := conn.Read(recvBuf[:])
-		log.Println("line-resp: "+ string(recvBuf))
+		log.Println("line-resp: " + string(recvBuf))
 		if err != nil {
 			break
 		}
@@ -156,9 +151,9 @@ func UpgradeConnection(protocol string, connection net.Conn) (err error) {
 
 // takes a connection and populates hostService with findings
 func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
-	err = connection.SetReadDeadline(time.Now().Add(2*time.Second))
+	err = connection.SetReadDeadline(time.Now().Add(2 * time.Second))
 	if err != nil {
-		return  err
+		return err
 	}
 	defer connection.Close()
 	var buffer []byte
@@ -173,16 +168,16 @@ func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
 			buffer = append(buffer, recvBuf...)
 		}
 	}
-	err = connection.SetWriteDeadline(time.Now().Add(3*time.Second))
+	err = connection.SetWriteDeadline(time.Now().Add(3 * time.Second))
 	if err != nil {
-		return  err
+		return err
 	}
 	_, err = connection.Write(
 		[]byte("GET / HTTP/1.1\r\nHost: " + event.Host + "\r\n\r\nHELP\r\nEHLO leakix.net\r\n?\r\n\r\n"))
 	if err == nil {
-		err = connection.SetReadDeadline(time.Now().Add(5*time.Second))
+		err = connection.SetReadDeadline(time.Now().Add(5 * time.Second))
 		if err != nil {
-			return  err
+			return err
 		}
 		for {
 			recvBuf := make([]byte, 16)
@@ -206,7 +201,7 @@ func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
 		}
 		return !unicode.IsPrint(r)
 	})
-	
+
 	for _, result := range printables {
 		event.Summary += strings.TrimSpace(result) + "\n"
 	}
@@ -223,7 +218,6 @@ func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
 	return nil
 }
 
-
 func FillSSLDetails(state tls.ConnectionState, event *l9format.L9Event) {
 	if len(state.PeerCertificates) > 0 {
 		err := state.PeerCertificates[0].VerifyHostname(event.Host)
@@ -236,14 +230,14 @@ func FillSSLDetails(state tls.ConnectionState, event *l9format.L9Event) {
 		for _, domain := range state.PeerCertificates[0].DNSNames {
 			event.SSL.Certificate.Domains = append(event.SSL.Certificate.Domains, domain)
 		}
-		event.SSL.Certificate.Fingerprint = fmt.Sprintf("%02x", sha256.Sum256( state.PeerCertificates[0].Raw))
+		event.SSL.Certificate.Fingerprint = fmt.Sprintf("%02x", sha256.Sum256(state.PeerCertificates[0].Raw))
 		event.SSL.CypherSuite = tls.CipherSuiteName(state.CipherSuite)
 		event.SSL.Version = GetTLSVersionName(state.Version)
 		event.SSL.Certificate.KeyAlgo = state.PeerCertificates[0].PublicKeyAlgorithm.String()
-		if publicKey, isECDSA :=  state.PeerCertificates[0].PublicKey.(*ecdsa.PublicKey); isECDSA {
+		if publicKey, isECDSA := state.PeerCertificates[0].PublicKey.(*ecdsa.PublicKey); isECDSA {
 			event.SSL.Certificate.KeySize = publicKey.Params().BitSize
-		} else if publicKey, isRSA :=  state.PeerCertificates[0].PublicKey.(*rsa.PublicKey); isRSA {
-			event.SSL.Certificate.KeySize = publicKey.Size()*8
+		} else if publicKey, isRSA := state.PeerCertificates[0].PublicKey.(*rsa.PublicKey); isRSA {
+			event.SSL.Certificate.KeySize = publicKey.Size() * 8
 		}
 		event.SSL.Certificate.NotBefore = state.PeerCertificates[0].NotBefore
 		event.SSL.Certificate.NotAfter = state.PeerCertificates[0].NotAfter
@@ -251,16 +245,13 @@ func FillSSLDetails(state tls.ConnectionState, event *l9format.L9Event) {
 	}
 }
 
-
-var plugin = core.ProxiedPlugin{}
 var tlsVersionMap = map[uint16]string{
-	0x0301 : "TLSv1.0",
-	0x0302 : "TLSv1.1",
-	0x0303 : "TLSv1.2",
-	0x0304 : "TLSv1.3",
-	0x0300 : "SSLv3",
+	0x0301: "TLSv1.0",
+	0x0302: "TLSv1.1",
+	0x0303: "TLSv1.2",
+	0x0304: "TLSv1.3",
+	0x0300: "SSLv3",
 }
-
 
 func GetJARM(event *l9format.L9Event) (err error) {
 	results := []string{}
@@ -297,7 +288,6 @@ func GetJARM(event *l9format.L9Event) (err error) {
 	event.SSL.JARM = jarm.RawHashToFuzzyHash(strings.Join(results, ","))
 	return nil
 }
-
 
 func GetTLSVersionName(version uint16) string {
 	if name, found := tlsVersionMap[version]; found {

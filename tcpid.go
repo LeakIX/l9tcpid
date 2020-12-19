@@ -11,11 +11,12 @@ import (
 )
 
 type TcpIdCommand struct {
-	MaxThreads int  `default:"10"`
+	MaxThreads    int                       `default:"10"`
 	ThreadManager *goccm.ConcurrencyManager `kong:"-"`
-	DeepHttp bool
-	Debug bool
+	DeepHttp      bool
+	Debug         bool
 }
+
 func (cmd *TcpIdCommand) Run() error {
 	cmd.ThreadManager = goccm.New(cmd.MaxThreads)
 	defer cmd.ThreadManager.WaitAllDone()
@@ -54,6 +55,11 @@ func (cmd *TcpIdCommand) Run() error {
 				if err != nil {
 					log.Fatal(err)
 				}
+			} else if ApplyDefaultProtocol(event) {
+				err = stdoutEncoder.Encode(event)
+				if err != nil {
+					log.Fatal(err)
+				}
 			}
 			if err != nil {
 				log.Println(err)
@@ -63,4 +69,3 @@ func (cmd *TcpIdCommand) Run() error {
 	}
 	return nil
 }
-

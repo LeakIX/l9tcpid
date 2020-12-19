@@ -34,6 +34,44 @@ func IdentifyMongoDb(event *l9format.L9Event, _ []byte, bannerPrintables []strin
 	return false
 }
 
+func IdentifyCouchDb(event *l9format.L9Event, _ []byte, _ []string) bool {
+	if event.HasTransport("http") &&
+		strings.Contains(event.Summary, "X-Couch-Request-Id") {
+		event.Protocol = "couchdb"
+		return true
+	}
+	return false
+}
+
+func IdentifyKibana(event *l9format.L9Event, _ []byte, _ []string) bool {
+	if event.HasTransport("http") &&
+		strings.Contains(event.Summary, "Kbn-Version") ||
+		strings.Contains(event.Summary, "Kbn-Name") {
+		event.Protocol = "kibana"
+		return true
+	}
+	return false
+}
+
+func IdentifyElasticsearch(event *l9format.L9Event, _ []byte, _ []string) bool {
+	if event.HasTransport("http") &&
+		strings.Contains(event.Summary, "lucene") &&
+		strings.Contains(event.Summary, "cluster_uuid") {
+		event.Protocol = "elasticsearch"
+		return true
+	}
+	return false
+}
+
+func IdentifyCassandra(event *l9format.L9Event, _ []byte, bannerLines []string) bool {
+	if len(bannerLines) > 2 && (strings.Contains(bannerLines[2], "Invalid or unsupported protocol version: 71") ||
+		strings.Contains(bannerLines[2], "Invalid or unsupported protocol version (71)")) {
+		event.Protocol = "cassandra"
+		return true
+	}
+	return false
+}
+
 func IdentifyMysql(event *l9format.L9Event, bannerBytes []byte, bannerPrintables []string) bool {
 	if strings.Contains(event.Summary, "mysql_native_password") ||
 		(len(bannerBytes) > 16 && bannerBytes[1] == 0x00 && bannerBytes[2] == 0x00 &&
@@ -60,7 +98,7 @@ func IdentifySMTP(event *l9format.L9Event, bannerBytes []byte, bannerPrintables 
 		((len(bannerPrintables) > 0 && strings.Contains(strings.ToLower(bannerPrintables[0]), "smtp")) ||
 			event.Port == "25" || event.Port == "587") {
 		event.Protocol = "smtp"
-		if strings.Contains(event.Summary,"STARTTLS") {
+		if strings.Contains(event.Summary, "STARTTLS") {
 			event.SSL.Detected = true
 		}
 		return true
