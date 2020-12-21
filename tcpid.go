@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"time"
 )
 
 type TcpIdCommand struct {
@@ -41,6 +42,7 @@ func (cmd *TcpIdCommand) Run() error {
 		event.AddSource("l9tcpid")
 		event.EventType = "service"
 		event.Protocol = "tcp"
+		event.Time = time.Now()
 		if err != nil {
 			return err
 		}
