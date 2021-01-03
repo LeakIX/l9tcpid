@@ -17,6 +17,8 @@ func IdentifyElasticSearch(event *l9format.L9Event, body string, document *goque
 func IdentifyKibana(event *l9format.L9Event, body string, document *goquery.Document) bool {
 	if kbnVersion, kbnFound := event.Http.Headers["kbn-version"]; kbnFound {
 		event.Protocol = "kibana"
+		event.Service.Software.Name = "Kibana"
+		event.Service.Software.Fingerprint = "kibana"
 		event.Service.Software.Version = kbnVersion
 		return true
 	}

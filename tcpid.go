@@ -24,7 +24,7 @@ func (cmd *TcpIdCommand) Run() error {
 	if !cmd.Debug {
 		log.SetOutput(ioutil.Discard)
 	}
-	stdinReader := bufio.NewReaderSize(os.Stdin, 256*1024)
+	stdinReader := bufio.NewReaderSize(os.Stdin, 1024*1024)
 	stdoutEncoder := json.NewEncoder(os.Stdout)
 	for {
 		bytes, isPrefix, err := stdinReader.ReadLine()

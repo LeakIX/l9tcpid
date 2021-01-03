@@ -12,7 +12,6 @@ type HttpIdentifier func(event *l9format.L9Event, body string, document *goquery
 
 var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyHttp,
-	tcp.IdentifyCouchDb,
 	tcp.IdentifyKibana,
 	tcp.IdentifyMongoDb,
 	tcp.IdentifySSH,
@@ -27,6 +26,7 @@ var TCPIdentifiers = []TcpIdentifier{
 var HttpIdentifiers = []HttpIdentifier{
 	http.IdentifyElasticSearch,
 	http.IdentifyKibana,
+	http.IdentifyCouchDb,
 }
 var serviceMap = map[string]string{
 	"9092": "kafka",
