@@ -59,10 +59,13 @@ func GetBanner(event *l9format.L9Event) (err error) {
 			return nil
 		}
 	}
-
-	connection = tls.Client(connection, &tls.Config{
+	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
-	})
+	}
+	if event.Host != "" {
+		tlsConfig.ServerName = event.Host
+	}
+	connection = tls.Client(connection, tlsConfig)
 	err = connection.(*tls.Conn).Handshake()
 	if err != nil {
 		err = connection.Close()

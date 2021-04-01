@@ -15,6 +15,7 @@ type TcpIdCommand struct {
 	MaxThreads    int                       `default:"10"`
 	ThreadManager *goccm.ConcurrencyManager `kong:"-"`
 	DeepHttp      bool
+	HttpPath      string `default:"/"`
 	Debug         bool
 }
 
@@ -49,8 +50,9 @@ func (cmd *TcpIdCommand) Run() error {
 		cmd.ThreadManager.Wait()
 		go func(event *l9format.L9Event) {
 			err = GetBanner(event)
+			log.Println(err)
 			if event.HasTransport("http") && cmd.DeepHttp {
-				err = GetHttpBanner(event)
+				err = GetHttpBanner(event, cmd.HttpPath)
 			}
 			if len(event.Summary) > 0 {
 				err = stdoutEncoder.Encode(event)

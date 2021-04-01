@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"github.com/LeakIX/l9format"
 	"github.com/PuerkitoBio/goquery"
+	"gitlab.nobody.run/tbi/bannerid"
+	"log"
 	"net"
 	"net/http"
 	"strconv"
@@ -50,7 +52,7 @@ func SendHttpTestRequest(hostname string, path string, connection net.Conn) (err
 	return nil
 }
 
-func GetHttpBanner(event *l9format.L9Event) (err error) {
+func GetHttpBanner(event *l9format.L9Event, path string) (err error) {
 	hostname := event.Ip
 	if len(event.Host) > 0 && event.Ip != event.Host {
 		hostname = event.Host
@@ -75,7 +77,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 	}
 	defer connection.Close()
 	// We're connected run the request
-	err = SendHttpTestRequest(hostname, "/", connection)
+	err = SendHttpTestRequest(hostname, path, connection)
 	if err != nil {
 		return err
 	}
@@ -91,7 +93,6 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		httpStatusLine = scanner.Text()
 		httpStatusLineParts := strings.Fields(httpStatusLine)
 		if len(httpStatusLineParts) > 2 {
-
 			if statusCode, err := strconv.Atoi(httpStatusLineParts[1]); err == nil && statusCode > 0 && statusCode < 999 {
 				event.Http.Status = statusCode
 			}
@@ -108,6 +109,21 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		headers[strings.Trim(strings.ToLower(headerParts[0]), " ")] = strings.Trim(strings.TrimPrefix(scanner.Text(), headerParts[0]+":"), " ")
 		if len(headers) > 128 {
 			break
+		}
+	}
+	if banner, found := headers["server"]; found {
+		log.Println(banner)
+		software, err := bannerid.ParseWebServerBanner(banner)
+		if err == nil {
+			event.Service.Software.Name = software.Name
+			event.Service.Software.Version = software.Version
+			event.Service.Software.OperatingSystem = software.OS
+			for _, module := range software.Modules {
+				event.Service.Software.Modules = append(event.Service.Software.Modules, l9format.SoftwareModule{
+					Name:        module.Name,
+					Version:     module.Version,
+				})
+			}
 		}
 	}
 	event.Http.Headers = headers
@@ -129,7 +145,7 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 		title := document.Find("title")
 		if title.Length() > 0 && len(title.Text()) > 0 {
 			event.Http.Title = title.Text()
-			event.Summary = "\r\nPage title: " + title.Text()
+			event.Summary = response + "Page title: " + title.Text()
 		}
 	}
 
@@ -143,3 +159,5 @@ func GetHttpBanner(event *l9format.L9Event) (err error) {
 	}
 	return nil
 }
+
+

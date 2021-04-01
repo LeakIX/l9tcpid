@@ -24,6 +24,8 @@ var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyCassandra,
 }
 var HttpIdentifiers = []HttpIdentifier{
+	http.TagPLC,
+	http.TagPrinter,
 	http.IdentifyElasticSearch,
 	http.IdentifyKibana,
 	http.IdentifyCouchDb,
