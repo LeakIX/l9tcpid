@@ -24,6 +24,8 @@ func IdentifyKibana(event *l9format.L9Event, body string, document *goquery.Docu
 	}
 	if _, kbnFound := event.Http.Headers["kbn-name"]; kbnFound {
 		event.Protocol = "kibana"
+		event.Service.Software.Name = "Kibana"
+		event.Service.Software.Version = ""
 		return true
 	}
 	return false
