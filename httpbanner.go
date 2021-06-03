@@ -41,7 +41,7 @@ func GetHttpClient(event *l9format.L9Event) *http.Client {
 
 var HttpTestRequest = "GET %s HTTP/1.1\r\n" +
 	"Host: %s\r\n" +
-	"User-Agent: l9tcpid/v1.0.0\r\n" +
+	"User-Agent: l9tcpid/v1.1.0\r\n" +
 	"Connection: close\r\n"
 
 func SendHttpTestRequest(hostname string, path string, connection net.Conn) (err error) {
