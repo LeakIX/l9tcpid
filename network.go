@@ -20,6 +20,8 @@ import (
 	"unicode"
 )
 
+var tlsSessionCache = tls.NewLRUClientSessionCache(4096*1024)
+
 func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 	taskContext, _ := context.WithDeadline(context.Background(), time.Now().Add(20*time.Second))
 	conn, err = net.DialTimeout("tcp", net.JoinHostPort(event.Ip, event.Port), 3*time.Second)
@@ -61,6 +63,7 @@ func GetBanner(event *l9format.L9Event) (err error) {
 	}
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
+		ClientSessionCache: tlsSessionCache,
 	}
 	if event.Host != "" {
 		tlsConfig.ServerName = event.Host

@@ -2,6 +2,8 @@ github.com/LeakIX/l9format v1.0.0-alpha.1 h1:QCDDH+AJy5V2VwNo/gxDAFx3wLpkDkk6qoL
 github.com/LeakIX/l9format v1.0.0-alpha.1/go.mod h1:zAMhvA0dNLwo66UmcL6e9vxKo2JxPQEVMDwNcc9Il9w=
 github.com/LeakIX/l9format v1.0.0 h1:zHqGvnwvr5iuI55nCSQbmVlPdiEfiNrjn890MMlX2rk=
 github.com/LeakIX/l9format v1.0.0/go.mod h1:eKQn32c5PgUM7806Un2v6WTSmJcdcixed+cRHsPEp0k=
+github.com/LeakIX/l9format v1.2.0-alpha.1 h1:wluoAX8aV2t+Oc6lx553KKlvDkVDmRB2af4uYutgp50=
+github.com/LeakIX/l9format v1.2.0-alpha.1/go.mod h1:eKQn32c5PgUM7806Un2v6WTSmJcdcixed+cRHsPEp0k=
 github.com/PuerkitoBio/goquery v1.6.1 h1:FgjbQZKl5HTmcn4sKBgvx8vv63nhyhIpv7lJpFGCWpk=
 github.com/PuerkitoBio/goquery v1.6.1/go.mod h1:GsLWisAFVj4WgDibEWF4pvYnkVQBpKBKeU+7zCJoLcc=
 github.com/RumbleDiscovery/jarm-go v0.0.6 h1:n3JEmOhPyfhmu1aeDEK/10Y2F+GMUYrtGFZmp4Yj0s4=
