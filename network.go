@@ -1,6 +1,7 @@
 package l9tcpid
 
 import (
+	"bytes"
 	"context"
 	"crypto/ecdsa"
 	"crypto/rsa"
@@ -12,15 +13,16 @@ import (
 	"github.com/LeakIX/l9format"
 	"github.com/RumbleDiscovery/jarm-go"
 	"gitlab.nobody.run/tbi/socksme"
+	"io"
 	"log"
 	"net"
 	"strconv"
 	"strings"
+	"sync"
 	"time"
 	"unicode"
 )
 
-var tlsSessionCache = tls.NewLRUClientSessionCache(4096*1024)
 
 func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 	taskContext, _ := context.WithDeadline(context.Background(), time.Now().Add(20*time.Second))
@@ -63,7 +65,6 @@ func GetBanner(event *l9format.L9Event) (err error) {
 	}
 	tlsConfig := &tls.Config{
 		InsecureSkipVerify: true,
-		ClientSessionCache: tlsSessionCache,
 	}
 	if event.Host != "" {
 		tlsConfig.ServerName = event.Host
@@ -157,51 +158,31 @@ func UpgradeConnection(protocol string, connection net.Conn) (err error) {
 
 // takes a connection and populates hostService with findings
 func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
-	err = connection.SetReadDeadline(time.Now().Add(2 * time.Second))
+	err = connection.SetReadDeadline(time.Now().Add(5 * time.Second))
 	if err != nil {
 		return err
 	}
 	defer connection.Close()
-	var buffer []byte
+	buffer := &bytes.Buffer{}
+	wg := &sync.WaitGroup{}
+	wg.Add(1)
 	// read input until deadline or error
-	for {
-		recvBuf := make([]byte, 16)
-		n, err := connection.Read(recvBuf[:])
-		if err != nil {
-			break
-		}
-		if n > 0 && len(buffer) < 512 {
-			buffer = append(buffer, recvBuf...)
-		}
-	}
+	go func(connection net.Conn, buffer *bytes.Buffer, wg *sync.WaitGroup) {
+		io.Copy(buffer, io.LimitReader(connection, 1024*512))
+		wg.Done()
+	}(connection, buffer, wg)
 	err = connection.SetWriteDeadline(time.Now().Add(3 * time.Second))
 	if err != nil {
 		return err
 	}
 	_, err = connection.Write(
 		[]byte("GET / HTTP/1.1\r\nHost: " + event.Host + "\r\n\r\nHELP\r\nEHLO leakix.net\r\n?\r\n\r\n"))
-	if err == nil {
-		err = connection.SetReadDeadline(time.Now().Add(5 * time.Second))
-		if err != nil {
-			return err
-		}
-		for {
-			recvBuf := make([]byte, 16)
-			n, err := connection.Read(recvBuf[:])
-			if err != nil {
-				break
-			}
-			if n > 0 && len(buffer) < 512 {
-				buffer = append(buffer, recvBuf...)
-			}
-		}
-	}
-
-	if len(buffer) < 1 {
+	wg.Wait()
+	if buffer.Len() < 1 {
 		// So far we have written without issue (aka NO RST came back)
 		return errors.New("empty")
 	}
-	printables := strings.FieldsFunc(string(buffer), func(r rune) bool {
+	printables := strings.FieldsFunc(buffer.String(), func(r rune) bool {
 		if r == '\n' || r == '\r' {
 			return true
 		}
@@ -212,14 +193,14 @@ func FuzzConnection(connection net.Conn, event *l9format.L9Event) (err error) {
 		event.Summary += strings.TrimSpace(result) + "\n"
 	}
 	for _, matchFunc := range TCPIdentifiers {
-		if matchFunc(event, buffer, printables) {
+		if matchFunc(event, buffer.Bytes(), printables) {
 			break
 		}
 	}
 	// We couldn't identify, add connection dump
 	if event.Protocol == "tcp" {
 		event.Summary += "\nRaw connection:\n"
-		event.Summary += hex.Dump(buffer)
+		event.Summary += hex.Dump(buffer.Bytes())
 	}
 	return nil
 }
