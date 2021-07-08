@@ -29,6 +29,8 @@ var HttpIdentifiers = []HttpIdentifier{
 	http.TagWordpress,
 	http.TagVMWare,
 	http.TagPLC,
+	http.TagPHP,
+	http.TagNginx,
 	http.TagPrinter,
 	http.IdentifyElasticSearch,
 	http.IdentifyKibana,

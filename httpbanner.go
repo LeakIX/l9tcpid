@@ -150,9 +150,7 @@ func GetHttpBanner(event *l9format.L9Event, path string) (err error) {
 	}
 
 	for _, matchFunc := range HttpIdentifiers {
-		if matchFunc(event, body, document) {
-			break
-		}
+		matchFunc(event, body, document)
 	}
 	if len(event.Http.Title) < 1 && len(body) < 16*1024 {
 		event.Summary += body
