@@ -24,11 +24,18 @@ var TCPIdentifiers = []TcpIdentifier{
 	tcp.IdentifyCassandra,
 }
 var HttpIdentifiers = []HttpIdentifier{
+	http.TagDrupal,
+	http.TagJoomla,
+	http.TagWordpress,
+	http.TagVMWare,
 	http.TagPLC,
+	http.TagPHP,
+	http.TagNginx,
 	http.TagPrinter,
 	http.IdentifyElasticSearch,
 	http.IdentifyKibana,
 	http.IdentifyCouchDb,
+
 }
 var serviceMap = map[string]string{
 	"9092": "kafka",
