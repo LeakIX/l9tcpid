@@ -2,7 +2,6 @@ package l9tcpid
 
 import (
 	"bytes"
-	"context"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/sha256"
@@ -12,7 +11,6 @@ import (
 	"fmt"
 	"github.com/LeakIX/l9format"
 	"github.com/RumbleDiscovery/jarm-go"
-	"gitlab.nobody.run/tbi/socksme"
 	"io"
 	"log"
 	"net"
@@ -23,9 +21,7 @@ import (
 	"unicode"
 )
 
-
 func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
-	taskContext, _ := context.WithDeadline(context.Background(), time.Now().Add(20*time.Second))
 	conn, err = net.DialTimeout("tcp", net.JoinHostPort(event.Ip, event.Port), 3*time.Second)
 	if tcpConn, isTcp := conn.(*net.TCPConn); isTcp {
 		// Will considerably lower TIME_WAIT connections and required fds,
@@ -36,10 +32,6 @@ func GetNetworkConnection(event *l9format.L9Event) (conn net.Conn, err error) {
 
 	}
 	return conn, err
-	// If you want to use a socks proxy ... Making network.go its own library soon.
-	//TODO : implement socks proxy support
-	return socksme.NewDialer("tcp", fmt.Sprintf("127.0.0.1:2250")).
-		DialContext(taskContext, "tcp", net.JoinHostPort(event.Ip, event.Port))
 }
 
 func GetBanner(event *l9format.L9Event) (err error) {
