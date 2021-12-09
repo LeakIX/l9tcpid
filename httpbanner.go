@@ -6,9 +6,9 @@ import (
 	"context"
 	"crypto/tls"
 	"fmt"
+	"github.com/LeakIX/bannerid"
 	"github.com/LeakIX/l9format"
 	"github.com/PuerkitoBio/goquery"
-	"gitlab.nobody.run/tbi/bannerid"
 	"log"
 	"net"
 	"net/http"
@@ -120,8 +120,8 @@ func GetHttpBanner(event *l9format.L9Event, path string) (err error) {
 			event.Service.Software.OperatingSystem = software.OS
 			for _, module := range software.Modules {
 				event.Service.Software.Modules = append(event.Service.Software.Modules, l9format.SoftwareModule{
-					Name:        module.Name,
-					Version:     module.Version,
+					Name:    module.Name,
+					Version: module.Version,
 				})
 			}
 		}
@@ -157,5 +157,3 @@ func GetHttpBanner(event *l9format.L9Event, path string) (err error) {
 	}
 	return nil
 }
-
-

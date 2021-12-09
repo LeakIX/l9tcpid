@@ -35,7 +35,7 @@ var HttpIdentifiers = []HttpIdentifier{
 	http.IdentifyElasticSearch,
 	http.IdentifyKibana,
 	http.IdentifyCouchDb,
-
+	http.IdentifyGrafana,
 }
 var serviceMap = map[string]string{
 	"9092": "kafka",

@@ -34,8 +34,6 @@ func IdentifyMongoDb(event *l9format.L9Event, _ []byte, bannerPrintables []strin
 	return false
 }
 
-
-
 func IdentifyKibana(event *l9format.L9Event, _ []byte, _ []string) bool {
 	if event.HasTransport("http") &&
 		strings.Contains(event.Summary, "Kbn-Version") ||
